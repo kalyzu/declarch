@@ -1,0 +1,6 @@
+[main]
+pkgs = [
+    "fish",
+    "niri",
+    "btm",
+]

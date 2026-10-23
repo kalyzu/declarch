@@ -26,7 +26,7 @@ dcl pacman add niri yazi micro
 dcl pacman rm niri yazi micro
 
 # Adds pacman package group
-dcl add pacman gnome
+dcl pacman add gnome
 # brings up this TUI
 Select packages to add from group "gnome"
 [x] gnome-shell
@@ -159,5 +159,3 @@ masked = [
     "foo.service",
 ]
 ```
-
-

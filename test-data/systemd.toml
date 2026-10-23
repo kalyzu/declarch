@@ -1,4 +1,4 @@
-[system]
+[systemd.system]
 enabled = [
     "docker.service",
     "bluetooth.service",
@@ -12,7 +12,7 @@ masked = [
     "avahi-daemon.service",
 ]
 
-[user]
+[systemd.user]
 enabled = [
     "bar.service",
     "foobar.service",

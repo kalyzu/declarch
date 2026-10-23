@@ -129,7 +129,7 @@ pub fn rm_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
     }
 
     if count == 0 {
-        println!("Packages not installed; nothing to do.")
+        println!("Package(s) not installed; nothing to do.")
     } else {
         println!("Removing packages:");
         for pkg in new_packages {

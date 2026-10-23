@@ -1,15 +1,66 @@
+use crate::PkgMan;
 use clap::{Parser, Subcommand};
+
+pub fn action() {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Update => declarch::update(),
+        Commands::Rebuild => declarch::rebuild(),
+
+        Commands::Pacman { action } => match action {
+            PacmanAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Pacman),
+            PacmanAction::Remove { packages } => declarch::rm_packages(&packages, PkgMan::Pacman),
+        },
+
+        Commands::Aur { action } => match action {
+            AurAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Aur),
+            AurAction::Remove { packages } => declarch::rm_packages(&packages, PkgMan::Aur),
+        },
+
+        Commands::Flatpak { action } => match action {
+            FlatpakAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Flatpak),
+            FlatpakAction::Remove { packages } => declarch::rm_packages(&packages, PkgMan::Flatpak),
+
+            FlatpakAction::Override { action } => match action {
+                FlatpakOverride::Add { target, flag } => {
+                    declarch::add_flatpak_override(&target, &flag)
+                }
+                FlatpakOverride::Remove { target, flag } => {
+                    declarch::rm_flatpak_override(&target, &flag)
+                }
+            },
+
+            FlatpakAction::Remote { action } => match action {
+                FlatpakRemote::Add { name, url } => declarch::add_flatpak_remote(&name, &url),
+                FlatpakRemote::Remove { name, url } => declarch::rm_flatpak_remote(&name, &url),
+            },
+        },
+
+        Commands::Systemd { action } => match action {
+            SystemdAction::Enable { owner, service } => {
+                declarch::enable_systemd_service(&owner, &service)
+            }
+            SystemdAction::Disable { owner, service } => {
+                declarch::disable_systemd_service(&owner, &service)
+            }
+            SystemdAction::Mask { owner, service } => {
+                declarch::mask_systemd_service(&owner, &service)
+            }
+        },
+    }
+}
 
 #[derive(Parser)]
 #[command(name = "dcl")]
 #[command(version, about = "Declarative Arch Linux")]
-pub struct Cli {
+struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    command: Commands,
 }
 
 #[derive(Subcommand)]
-pub enum Commands {
+enum Commands {
     /// Update all groups and packages
     #[command(alias = "u")]
     Update,
@@ -48,7 +99,7 @@ pub enum Commands {
 }
 
 #[derive(Subcommand)]
-pub enum PacmanAction {
+enum PacmanAction {
     /// Add packages
     Add {
         /// Package(s) to install
@@ -63,7 +114,7 @@ pub enum PacmanAction {
 }
 
 #[derive(Subcommand)]
-pub enum AurAction {
+enum AurAction {
     /// Add packages
     Add {
         /// Package(s) to install
@@ -78,7 +129,7 @@ pub enum AurAction {
 }
 
 #[derive(Subcommand)]
-pub enum FlatpakAction {
+enum FlatpakAction {
     /// Add packages
     Add {
         /// Package(s) to install
@@ -105,7 +156,7 @@ pub enum FlatpakAction {
 }
 
 #[derive(Subcommand)]
-pub enum FlatpakOverride {
+enum FlatpakOverride {
     /// Add Override
     Add {
         /// Target [possible values: global, any_package_id]
@@ -114,7 +165,7 @@ pub enum FlatpakOverride {
         flag: String,
     },
     /// Remove Override
-    Rm {
+    Remove {
         /// Target [possible values: global, any_package_id]
         target: String,
         /// A flatpak override flag
@@ -123,7 +174,7 @@ pub enum FlatpakOverride {
 }
 
 #[derive(Subcommand)]
-pub enum FlatpakRemote {
+enum FlatpakRemote {
     /// Add Override
     Add {
         /// Name of the remote
@@ -132,7 +183,7 @@ pub enum FlatpakRemote {
         url: String,
     },
     /// Remove Override
-    Rm {
+    Remove {
         /// Name of the remote
         name: String,
         /// Url of the remote
@@ -141,7 +192,7 @@ pub enum FlatpakRemote {
 }
 
 #[derive(Subcommand)]
-pub enum SystemdAction {
+enum SystemdAction {
     /// Enable
     Enable {
         /// Owner of service

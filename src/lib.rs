@@ -14,6 +14,22 @@ use toml_edit::{DocumentMut, Value};
 //     packages: Vec<String>,
 // }
 
+pub enum PkgMan {
+    Pacman,
+    Aur,
+    Flatpak,
+}
+
+impl PkgMan {
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Pacman => "pacman",
+            Self::Aur => "aur",
+            Self::Flatpak => "flatpak",
+        }
+    }
+}
+
 fn get_doc(path: &str) -> DocumentMut {
     let toml_data = fs::read_to_string(path).expect(format!("{} not found", path).as_str());
     toml_data
@@ -30,7 +46,43 @@ fn get_doc(path: &str) -> DocumentMut {
 //     Ok(())
 // }
 
-pub fn add_pkg(new_packages: &Vec<String>) {
+pub fn update() {
+    todo!();
+}
+
+pub fn rebuild() {
+    todo!();
+}
+
+pub fn add_flatpak_override(target: &str, flag: &str) {
+    todo!();
+}
+
+pub fn rm_flatpak_override(target: &str, flag: &str) {
+    todo!();
+}
+
+pub fn add_flatpak_remote(name: &str, url: &str) {
+    todo!();
+}
+
+pub fn rm_flatpak_remote(tarnameget: &str, url: &str) {
+    todo!();
+}
+
+pub fn enable_systemd_service(owner: &str, service: &str) {
+    todo!();
+}
+
+pub fn disable_systemd_service(owner: &str, service: &str) {
+    todo!();
+}
+
+pub fn mask_systemd_service(owner: &str, service: &str) {
+    todo!();
+}
+
+pub fn add_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
     let file_path = "test-data/config.toml";
 
     println!("Adding packages:");
@@ -52,9 +104,10 @@ pub fn add_pkg(new_packages: &Vec<String>) {
     fs::write(file_path, doc.to_string()).expect("Failed to write file");
 }
 
-pub fn rm_pkg(new_packages: &Vec<String>) {
+pub fn rm_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
     let file_path = "test-data/config.toml";
 
+    let pkg_man_str = pkg_man.as_str();
     println!("Removing packages:");
     for pkg in new_packages {
         println!("{}", pkg);

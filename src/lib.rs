@@ -82,16 +82,22 @@ pub fn mask_systemd_service(owner: &str, service: &str) {
     todo!();
 }
 
+fn get_pkg_man_path(pkg_man: &PkgMan) -> String {
+    let pkg_man_str = pkg_man.as_str();
+    format!("test-data/{}.toml", pkg_man_str)
+}
+
 pub fn add_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
-    let file_path = "test-data/config.toml";
+    let file_path: String = get_pkg_man_path(&pkg_man);
+    let pkg_man_str = pkg_man.as_str();
 
     println!("Adding packages:");
     for pkg in new_packages {
         println!("{}", pkg);
     }
-    let mut doc = get_doc(file_path);
+    let mut doc = get_doc(&file_path);
 
-    if let Some(packages) = doc["pacman"]["packages"].as_array_mut() {
+    if let Some(packages) = doc[pkg_man_str]["packages"].as_array_mut() {
         for pkg in new_packages {
             let mut new_item = Value::from(pkg);
             new_item.decor_mut().set_prefix("\n    ");
@@ -105,23 +111,29 @@ pub fn add_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
 }
 
 pub fn rm_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
-    let file_path = "test-data/config.toml";
-
+    let file_path: String = get_pkg_man_path(&pkg_man);
     let pkg_man_str = pkg_man.as_str();
-    println!("Removing packages:");
-    for pkg in new_packages {
-        println!("{}", pkg);
-    }
 
-    let mut doc = get_doc(file_path);
+    let mut doc = get_doc(&file_path);
 
-    if let Some(packages) = doc["pacman"]["packages"].as_array_mut() {
+    let mut count: u32 = 0;
+    if let Some(packages) = doc[pkg_man_str]["packages"].as_array_mut() {
         for pkg in new_packages {
             let target_index = packages.iter().position(|val| val.as_str() == Some(pkg));
 
             if let Some(idx) = target_index {
+                count += 1;
                 packages.remove(idx);
             }
+        }
+    }
+
+    if count == 0 {
+        println!("Packages not installed; nothing to do.")
+    } else {
+        println!("Removing packages:");
+        for pkg in new_packages {
+            println!("{}", pkg);
         }
     }
 

@@ -1,5 +1,5 @@
-use crate::PkgMan;
 use clap::{Parser, Subcommand};
+use declarch::PkgMan;
 
 pub fn action() {
     let cli = Cli::parse();
@@ -10,30 +10,30 @@ pub fn action() {
 
         Commands::Pacman { action } => match action {
             PacmanAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Pacman),
-            PacmanAction::Remove { packages } => declarch::rm_packages(&packages, PkgMan::Pacman),
+            PacmanAction::Rm { packages } => declarch::rm_packages(&packages, PkgMan::Pacman),
         },
 
         Commands::Aur { action } => match action {
             AurAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Aur),
-            AurAction::Remove { packages } => declarch::rm_packages(&packages, PkgMan::Aur),
+            AurAction::Rm { packages } => declarch::rm_packages(&packages, PkgMan::Aur),
         },
 
         Commands::Flatpak { action } => match action {
             FlatpakAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Flatpak),
-            FlatpakAction::Remove { packages } => declarch::rm_packages(&packages, PkgMan::Flatpak),
+            FlatpakAction::Rm { packages } => declarch::rm_packages(&packages, PkgMan::Flatpak),
 
             FlatpakAction::Override { action } => match action {
                 FlatpakOverride::Add { target, flag } => {
                     declarch::add_flatpak_override(&target, &flag)
                 }
-                FlatpakOverride::Remove { target, flag } => {
+                FlatpakOverride::Rm { target, flag } => {
                     declarch::rm_flatpak_override(&target, &flag)
                 }
             },
 
             FlatpakAction::Remote { action } => match action {
                 FlatpakRemote::Add { name, url } => declarch::add_flatpak_remote(&name, &url),
-                FlatpakRemote::Remove { name, url } => declarch::rm_flatpak_remote(&name, &url),
+                FlatpakRemote::Rm { name, url } => declarch::rm_flatpak_remote(&name, &url),
             },
         },
 
@@ -107,7 +107,7 @@ enum PacmanAction {
     },
 
     /// Remove packages
-    Remove {
+    Rm {
         /// Package(s) to remove
         packages: Vec<String>,
     },
@@ -122,7 +122,7 @@ enum AurAction {
     },
 
     /// Remove packages
-    Remove {
+    Rm {
         /// Package(s) to remove
         packages: Vec<String>,
     },
@@ -137,7 +137,7 @@ enum FlatpakAction {
     },
 
     /// Remove packages
-    Remove {
+    Rm {
         /// Package(s) to remove
         packages: Vec<String>,
     },
@@ -165,7 +165,7 @@ enum FlatpakOverride {
         flag: String,
     },
     /// Remove Override
-    Remove {
+    Rm {
         /// Target [possible values: global, any_package_id]
         target: String,
         /// A flatpak override flag
@@ -183,7 +183,7 @@ enum FlatpakRemote {
         url: String,
     },
     /// Remove Override
-    Remove {
+    Rm {
         /// Name of the remote
         name: String,
         /// Url of the remote

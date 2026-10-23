@@ -66,7 +66,7 @@ pub fn add_flatpak_remote(name: &str, url: &str) {
     todo!();
 }
 
-pub fn rm_flatpak_remote(tarnameget: &str, url: &str) {
+pub fn rm_flatpak_remote(name: &str, url: &str) {
     todo!();
 }
 

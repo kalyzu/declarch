@@ -7,6 +7,7 @@ pub fn action() {
     match cli.command {
         Commands::Update => declarch::update(),
         Commands::Rebuild => declarch::rebuild(),
+        Commands::Init => declarch::init(),
 
         Commands::Pacman { action } => match action {
             PacmanAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Pacman),
@@ -61,6 +62,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Initialize with starter config files
+    #[command(alias = "i")]
+    Init,
+
     /// Update all groups and packages
     #[command(alias = "u")]
     Update,

@@ -54,6 +54,10 @@ pub fn rebuild() {
     todo!();
 }
 
+pub fn init() {
+    todo!();
+}
+
 pub fn add_flatpak_override(target: &str, flag: &str) {
     todo!();
 }

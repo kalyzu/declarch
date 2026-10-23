@@ -1,0 +1,27 @@
+[system]
+enabled = [
+    "docker.service",
+    "bluetooth.service",
+]
+
+disabled = [
+    "avahi-daemon.service",
+]
+
+masked = [
+    "avahi-daemon.service",
+]
+
+[user]
+enabled = [
+    "bar.service",
+    "foobar.service",
+]
+
+disabled = [
+    "foo.service",
+]
+
+masked = [
+    "foo.service",
+]

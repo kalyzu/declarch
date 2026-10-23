@@ -1,0 +1,11 @@
+[aur]
+helper = "paru" # options: paru/yay
+packages = [
+    "turbowarp-bin",
+    "whatever-git",
+]
+[aur.groups.custom-fonts]
+packages = [
+    "ttf-ms-fonts",
+    "nerd-fonts-inter"
+]

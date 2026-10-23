@@ -20,10 +20,10 @@ fn main() {
         _ => println!("Bad arguments"),
     }
 
-    match declarch::run() {
-        Ok(_) => (),
-        Err(e) => {
-            println!("{}", e);
-        }
-    }
+    // match declarch::run() {
+    //     Ok(_) => (),
+    //     Err(e) => {
+    //         println!("{}", e);
+    //     }
+    // }
 }

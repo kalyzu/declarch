@@ -1,0 +1,12 @@
+[pacman]
+packages = [
+    "niri",
+    "yazi",
+    "micro",
+]
+
+[pacman.groups.gnome]
+packages = [
+    "gnome-shell",
+    "gnome-weather",
+]

@@ -15,7 +15,7 @@ pub fn pacman(doc: &mut DocumentMut, packages: &Vec<String>) {
     }
 
     // This whole if let block is just for groups.
-    if let Some(groups) = shell::check_for_groups(packages, ConfigFile::Pacman) {
+    if let Some(groups) = shell::check_for_groups(&packages, ConfigFile::Pacman) {
         for (group_name, group_pkgs) in groups {
             let group_table_name: String = format!("pacman.groups.{}", group_name);
             // Verify that the group table exists
@@ -44,8 +44,8 @@ pub fn pacman(doc: &mut DocumentMut, packages: &Vec<String>) {
     if let Some(packages_array) = doc["pacman"]["packages"].as_array_mut() {
         for pkg in packages {
             // Prevent duplicate package additions if it's already there
-            if !packages_array.iter().any(|v| v.as_str() == Some(pkg)) {
-                let mut new_item = Value::from(pkg);
+            if !packages_array.iter().any(|v| v.as_str() == Some(&pkg)) {
+                let mut new_item = Value::from(pkg.clone());
                 new_item.decor_mut().set_prefix("\n    ");
                 packages_array.set_trailing_comma(true);
                 packages_array.push(new_item);

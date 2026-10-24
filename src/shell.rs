@@ -1,7 +1,42 @@
 // All shell commands performed here only
 use crate::ConfigFile;
-use crate::insert::aur_command;
+use crate::insert::aur_helper;
 use std::{collections::HashMap, process::Command};
+
+pub fn install_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
+    let packages_string: String = packages.join(" ");
+    let install_command = match &config_file_type {
+        ConfigFile::Pacman => format!("pacman -S --needed {packages_string}"),
+        ConfigFile::Aur => format!(
+            "{} -S --needed {packages_string}",
+            aur_helper(&config_file_type)
+        ),
+        ConfigFile::Flatpak => todo!(),
+    };
+
+    let mut child = Command::new("sh")
+        .arg("-c")
+        .arg(install_command)
+        .spawn()
+        .expect("Failed to run command!");
+    child.wait().expect("Failed to run command!");
+}
+
+pub fn rm_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
+    let packages_string: String = packages.join(" ");
+    let install_command = match &config_file_type {
+        ConfigFile::Pacman => format!("pacman -Rns {packages_string}"),
+        ConfigFile::Aur => format!("{} -Rns {packages_string}", aur_helper(&config_file_type)),
+        ConfigFile::Flatpak => todo!(),
+    };
+
+    let mut child = Command::new("sh")
+        .arg("-c")
+        .arg(install_command)
+        .spawn()
+        .expect("Failed to run command!");
+    child.wait().expect("Failed to run command!");
+}
 
 pub fn check_for_groups(
     packages: &Vec<String>,
@@ -11,7 +46,7 @@ pub fn check_for_groups(
 
     let group_command = match &config_file_type {
         ConfigFile::Pacman => format!("pacman -Sg {}", packages_string),
-        ConfigFile::Aur => aur_command(&packages_string, &config_file_type),
+        ConfigFile::Aur => format!("{} -Si {packages_string}", aur_helper(&config_file_type)),
         _ => return None,
     };
 

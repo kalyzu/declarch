@@ -54,16 +54,16 @@ pub fn pacman(doc: &mut DocumentMut, packages: &Vec<String>) {
     }
 }
 
-pub fn aur_command(packages_string: &str, config_file_type: &ConfigFile) -> String {
+pub fn aur_helper(config_file_type: &ConfigFile) -> String {
     let file_path = crate::get_config_file_path(&config_file_type);
     let mut doc = crate::get_doc(&file_path);
     // Verify that the aur table exists
     doc.entry("aur").or_insert(table());
     // Verify that helper under aur exists
     let helper = doc["aur"]["helper"].as_str().unwrap_or("paru");
-    format!("{helper} -Si {packages_string}")
+    helper.to_string()
 }
 
 pub fn aur(doc: &mut DocumentMut, packages: &Vec<String>) {}
 
-pub fn flatpak_pkg(doc: &mut DocumentMut, packages: &Vec<String>) {}
+pub fn flatpak_pkg(doc: &mut DocumentMut, packages: &Vec<String>, remote: &str) {}

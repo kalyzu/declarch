@@ -10,18 +10,20 @@ pub fn action() {
         Commands::Init => declarch::init(),
 
         Commands::Pacman { action } => match action {
-            PacmanAction::Add { packages } => declarch::add_packages(&packages, ConfigFile::Pacman),
+            PacmanAction::Add { packages } => {
+                declarch::add_packages(&packages, ConfigFile::Pacman, None)
+            }
             PacmanAction::Rm { packages } => declarch::rm_packages(&packages, ConfigFile::Pacman),
         },
 
         Commands::Aur { action } => match action {
-            AurAction::Add { packages } => declarch::add_packages(&packages, ConfigFile::Aur),
+            AurAction::Add { packages } => declarch::add_packages(&packages, ConfigFile::Aur, None),
             AurAction::Rm { packages } => declarch::rm_packages(&packages, ConfigFile::Aur),
         },
 
         Commands::Flatpak { action } => match action {
-            FlatpakAction::Add { packages } => {
-                declarch::add_packages(&packages, ConfigFile::Flatpak)
+            FlatpakAction::Add { remote, packages } => {
+                declarch::add_packages(&packages, ConfigFile::Flatpak, Some(&remote))
             }
             FlatpakAction::Rm { packages } => declarch::rm_packages(&packages, ConfigFile::Flatpak),
 
@@ -139,6 +141,8 @@ enum AurAction {
 enum FlatpakAction {
     /// Add packages
     Add {
+        /// Remote to use
+        remote: String,
         /// Package(s) to install
         packages: Vec<String>,
     },

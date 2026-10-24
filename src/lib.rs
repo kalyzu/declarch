@@ -122,8 +122,12 @@ fn ensure_file_exists<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     }
 }
 
-pub fn add_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
-    let file_path: String = get_config_file_path(&config_file);
+pub fn add_packages(
+    new_packages: &Vec<String>,
+    config_file_type: ConfigFile,
+    remote: Option<&str>,
+) {
+    let file_path: String = get_config_file_path(&config_file_type);
 
     println!("Adding packages:");
     for pkg in new_packages {
@@ -131,24 +135,27 @@ pub fn add_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
     }
     let mut doc = get_doc(&file_path);
 
-    match config_file {
+    match config_file_type {
         Pacman => insert::pacman(&mut doc, new_packages),
         Aur => insert::aur(&mut doc, new_packages),
-        Flatpak => insert::flatpak_pkg(&mut doc, new_packages),
+        Flatpak => insert::flatpak_pkg(&mut doc, new_packages, remote.unwrap()),
     }
 
     // Write changes to disk
     fs::write(file_path, doc.to_string()).expect("Failed to write file");
+
+    // Actually run the command to install the packages
+    shell::install_packages(new_packages, &config_file_type);
 }
 
-pub fn rm_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
-    let file_path: String = get_config_file_path(&config_file);
-    let config_file_str = config_file.as_str();
+pub fn rm_packages(new_packages: &Vec<String>, config_file_type: ConfigFile) {
+    let file_path: String = get_config_file_path(&config_file_type);
+    let config_file_type_str = config_file_type.as_str();
 
     let mut doc = get_doc(&file_path);
 
     let mut count: u32 = 0;
-    if let Some(packages) = doc[config_file_str]["packages"].as_array_mut() {
+    if let Some(packages) = doc[config_file_type_str]["packages"].as_array_mut() {
         for pkg in new_packages {
             let target_index = packages.iter().position(|val| val.as_str() == Some(pkg));
 
@@ -170,4 +177,7 @@ pub fn rm_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
 
     // Write changes to disk
     fs::write(file_path, doc.to_string()).expect("Failed to write file");
+
+    // Actually run the command to remove the packages
+    shell::rm_packages(new_packages, &config_file_type);
 }

@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use declarch::PkgMan;
+use declarch::ConfigFile;
 
 pub fn action() {
     let cli = Cli::parse();
@@ -10,18 +10,20 @@ pub fn action() {
         Commands::Init => declarch::init(),
 
         Commands::Pacman { action } => match action {
-            PacmanAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Pacman),
-            PacmanAction::Rm { packages } => declarch::rm_packages(&packages, PkgMan::Pacman),
+            PacmanAction::Add { packages } => declarch::add_packages(&packages, ConfigFile::Pacman),
+            PacmanAction::Rm { packages } => declarch::rm_packages(&packages, ConfigFile::Pacman),
         },
 
         Commands::Aur { action } => match action {
-            AurAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Aur),
-            AurAction::Rm { packages } => declarch::rm_packages(&packages, PkgMan::Aur),
+            AurAction::Add { packages } => declarch::add_packages(&packages, ConfigFile::Aur),
+            AurAction::Rm { packages } => declarch::rm_packages(&packages, ConfigFile::Aur),
         },
 
         Commands::Flatpak { action } => match action {
-            FlatpakAction::Add { packages } => declarch::add_packages(&packages, PkgMan::Flatpak),
-            FlatpakAction::Rm { packages } => declarch::rm_packages(&packages, PkgMan::Flatpak),
+            FlatpakAction::Add { packages } => {
+                declarch::add_packages(&packages, ConfigFile::Flatpak)
+            }
+            FlatpakAction::Rm { packages } => declarch::rm_packages(&packages, ConfigFile::Flatpak),
 
             FlatpakAction::Override { action } => match action {
                 FlatpakOverride::Add { target, flag } => {

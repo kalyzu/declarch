@@ -20,12 +20,12 @@ packages = [
 id = "app.drey.Haystack"
 remote = "flathub" # defaults to flathub if omitted
 overrides = [
-    "--filesystem=/home/arch-desktop/Documents"
+    "--filesystem=/home/arch-desktop/Documents",
 ]
 
 [[app_override]]
 id = "org.turbowarp.TurboWarp"
 remote = "flathub" # defaults to flathub if omitted
 overrides = [
-    "--filesystem=/home/arch-desktop/Downloads"
+    "--filesystem=/home/arch-desktop/Downloads",
 ]

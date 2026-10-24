@@ -1,5 +1,6 @@
 // use serde::Deserialize;
 use std::fs;
+use std::path::Path;
 use toml_edit::{DocumentMut, Value};
 
 // #[derive(Deserialize, Debug)]
@@ -14,13 +15,13 @@ use toml_edit::{DocumentMut, Value};
 //     packages: Vec<String>,
 // }
 
-pub enum PkgMan {
+pub enum ConfigFile {
     Pacman,
     Aur,
     Flatpak,
 }
 
-impl PkgMan {
+impl ConfigFile {
     fn as_str(&self) -> &'static str {
         match self {
             Self::Pacman => "pacman",
@@ -31,6 +32,11 @@ impl PkgMan {
 }
 
 fn get_doc(path: &str) -> DocumentMut {
+    match ensure_file_exists(path) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+
     let toml_data = fs::read_to_string(path).expect(format!("{} not found", path).as_str());
     toml_data
         .parse::<DocumentMut>()
@@ -86,14 +92,34 @@ pub fn mask_systemd_service(owner: &str, service: &str) {
     todo!();
 }
 
-fn get_pkg_man_path(pkg_man: &PkgMan) -> String {
-    let pkg_man_str = pkg_man.as_str();
-    format!("test-data/{}.toml", pkg_man_str)
+fn get_config_file_path(config_file: &ConfigFile) -> String {
+    let config_file_str = config_file.as_str();
+    format!("test-data/{}.toml", config_file_str)
 }
 
-pub fn add_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
-    let file_path: String = get_pkg_man_path(&pkg_man);
-    let pkg_man_str = pkg_man.as_str();
+// fn credit: gemini 3 (with manual edits, the code was broken at first :P)
+fn ensure_file_exists<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
+    use std::fs::{File, create_dir_all};
+    use std::io::ErrorKind;
+
+    let path = path.as_ref();
+
+    // 1. Create all parent directories if they don't exist
+    if let Some(parent) = path.parent() {
+        create_dir_all(parent)?;
+    }
+
+    // 2. Create the file only if it is missing
+    match File::create_new(path) {
+        Ok(_file) => Ok(()), // Created successfully; dropped immediately
+        Err(e) if e.kind() == ErrorKind::AlreadyExists => Ok(()), // Already exists; ignore
+        Err(e) => Err(e),    // Bubble up any other I/O errors
+    }
+}
+
+pub fn add_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
+    let file_path: String = get_config_file_path(&config_file);
+    let config_file_str = config_file.as_str();
 
     println!("Adding packages:");
     for pkg in new_packages {
@@ -101,7 +127,7 @@ pub fn add_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
     }
     let mut doc = get_doc(&file_path);
 
-    if let Some(packages) = doc[pkg_man_str]["packages"].as_array_mut() {
+    if let Some(packages) = doc[config_file_str]["packages"].as_array_mut() {
         for pkg in new_packages {
             let mut new_item = Value::from(pkg);
             new_item.decor_mut().set_prefix("\n    ");
@@ -114,14 +140,14 @@ pub fn add_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
     fs::write(file_path, doc.to_string()).expect("Failed to write file");
 }
 
-pub fn rm_packages(new_packages: &Vec<String>, pkg_man: PkgMan) {
-    let file_path: String = get_pkg_man_path(&pkg_man);
-    let pkg_man_str = pkg_man.as_str();
+pub fn rm_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
+    let file_path: String = get_config_file_path(&config_file);
+    let config_file_str = config_file.as_str();
 
     let mut doc = get_doc(&file_path);
 
     let mut count: u32 = 0;
-    if let Some(packages) = doc[pkg_man_str]["packages"].as_array_mut() {
+    if let Some(packages) = doc[config_file_str]["packages"].as_array_mut() {
         for pkg in new_packages {
             let target_index = packages.iter().position(|val| val.as_str() == Some(pkg));
 

@@ -3,6 +3,11 @@ use std::fs;
 use std::path::Path;
 use toml_edit::{DocumentMut, Value};
 
+use crate::ConfigFile::{Aur, Flatpak, Pacman};
+
+mod insert;
+mod shell;
+
 // #[derive(Deserialize, Debug)]
 // struct Config {
 //     pacman: PkgList,
@@ -31,7 +36,7 @@ impl ConfigFile {
     }
 }
 
-fn get_doc(path: &str) -> DocumentMut {
+pub fn get_doc(path: &str) -> DocumentMut {
     match ensure_file_exists(path) {
         Ok(_) => (),
         Err(e) => eprintln!("{e}"),
@@ -92,7 +97,7 @@ pub fn mask_systemd_service(owner: &str, service: &str) {
     todo!();
 }
 
-fn get_config_file_path(config_file: &ConfigFile) -> String {
+pub fn get_config_file_path(config_file: &ConfigFile) -> String {
     let config_file_str = config_file.as_str();
     format!("test-data/{}.toml", config_file_str)
 }
@@ -119,7 +124,6 @@ fn ensure_file_exists<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
 
 pub fn add_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
     let file_path: String = get_config_file_path(&config_file);
-    let config_file_str = config_file.as_str();
 
     println!("Adding packages:");
     for pkg in new_packages {
@@ -127,13 +131,10 @@ pub fn add_packages(new_packages: &Vec<String>, config_file: ConfigFile) {
     }
     let mut doc = get_doc(&file_path);
 
-    if let Some(packages) = doc[config_file_str]["packages"].as_array_mut() {
-        for pkg in new_packages {
-            let mut new_item = Value::from(pkg);
-            new_item.decor_mut().set_prefix("\n    ");
-            packages.set_trailing_comma(true);
-            packages.push(new_item);
-        }
+    match config_file {
+        Pacman => insert::pacman(&mut doc, new_packages),
+        Aur => insert::aur(&mut doc, new_packages),
+        Flatpak => insert::flatpak_pkg(&mut doc, new_packages),
     }
 
     // Write changes to disk

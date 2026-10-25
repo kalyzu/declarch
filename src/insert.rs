@@ -64,6 +64,10 @@ pub fn aur_helper(config_file_type: &ConfigFile) -> String {
     helper.to_string()
 }
 
-pub fn aur(doc: &mut DocumentMut, packages: &Vec<String>) {}
+pub fn aur(doc: &mut DocumentMut, packages: &Vec<String>) {
+    todo!();
+}
 
-pub fn flatpak_pkg(doc: &mut DocumentMut, packages: &Vec<String>, remote: &str) {}
+pub fn flatpak_pkg(doc: &mut DocumentMut, packages: &Vec<String>, remote: &str) {
+    todo!();
+}

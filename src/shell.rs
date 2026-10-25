@@ -6,7 +6,9 @@ use std::{collections::HashMap, process::Command};
 pub fn install_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
     let packages_string: String = packages.join(" ");
     let install_command = match &config_file_type {
-        ConfigFile::Pacman => format!("pacman -S --needed {packages_string}"),
+        ConfigFile::Pacman => {
+            format!("sudo pacman -Sy && sudo pacman -S --needed {packages_string}")
+        }
         ConfigFile::Aur => format!(
             "{} -S --needed {packages_string}",
             aur_helper(&config_file_type)
@@ -25,7 +27,7 @@ pub fn install_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
 pub fn rm_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
     let packages_string: String = packages.join(" ");
     let install_command = match &config_file_type {
-        ConfigFile::Pacman => format!("pacman -Rns {packages_string}"),
+        ConfigFile::Pacman => format!("sudo pacman -Rns {packages_string}"),
         ConfigFile::Aur => format!("{} -Rns {packages_string}", aur_helper(&config_file_type)),
         ConfigFile::Flatpak => todo!(),
     };

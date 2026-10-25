@@ -57,12 +57,39 @@ pub fn get_doc(path: &str) -> DocumentMut {
 //     Ok(())
 // }
 
+// cred: gemini 3
+fn toml_array_to_vec(arr: &toml_edit::Array) -> Vec<String> {
+    arr.iter()
+        .filter_map(|value| value.as_str()) // Converts &Value to Option<&str>
+        .map(|s| s.to_string()) // Converts &str to String
+        .collect() // Collects into Vec<String>
+}
+
 pub fn update() {
     todo!();
 }
 
 pub fn rebuild() {
-    todo!();
+    let config_file_type = ConfigFile::Pacman;
+    let path = get_config_file_path(&config_file_type);
+    match ensure_file_exists(&path) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+    let doc = get_doc(&path);
+    if let Some(arr) = doc["pacman"]["packages"].as_array() {
+        shell::install_packages(&toml_array_to_vec(arr), &config_file_type);
+    }
+    let path = get_config_file_path(&ConfigFile::Aur);
+    match ensure_file_exists(path) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+    let path = get_config_file_path(&ConfigFile::Flatpak);
+    match ensure_file_exists(path) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
 }
 
 pub fn init() {
@@ -148,6 +175,7 @@ pub fn add_packages(
     shell::install_packages(new_packages, &config_file_type);
 }
 
+// this fn currently does not remove groups, nor can it remove a different flatpak remote package
 pub fn rm_packages(new_packages: &Vec<String>, config_file_type: ConfigFile) {
     let file_path: String = get_config_file_path(&config_file_type);
     let config_file_type_str = config_file_type.as_str();

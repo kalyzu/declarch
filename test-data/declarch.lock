@@ -1,0 +1,56 @@
+[pacman]
+packages = [
+    "niri",
+    "yazi",
+    "micro",
+]
+
+[pacman.groups.gnome]
+packages = [
+    "gnome-shell",
+    "gnome-weather",
+]
+
+[aur]
+helper = "paru" # options: paru/yay
+packages = [
+    "turbowarp-bin",
+    "whatever-git",
+]
+[aur.groups.custom-fonts]
+packages = [
+    "ttf-ms-fonts",
+    "nerd-fonts-inter"
+]
+
+[flatpak]
+global_overrides = [
+    "--filesystem=xdg-config/gtk-3.0:ro",
+    "--env=GTK_THEME=Adwaita-dark"
+]
+
+remotes = [
+    { name = "flathub", url = "https://flathub.org" },
+    { name = "flathub-beta", url = "https://flathub.org" }
+]
+
+# All packages
+packages = [
+    "app.drey.Haystack",
+    "org.turbowarp.TurboWarp",
+]
+
+# Special overrides: permissions or different remotes
+[[app_override]]
+id = "app.drey.Haystack"
+remote = "flathub" # defaults to flathub if omitted
+overrides = [
+    "--filesystem=/home/arch-desktop/Documents",
+]
+
+[[app_override]]
+id = "org.turbowarp.TurboWarp"
+remote = "flathub" # defaults to flathub if omitted
+overrides = [
+    "--filesystem=/home/arch-desktop/Downloads",
+]

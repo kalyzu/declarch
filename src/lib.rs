@@ -24,6 +24,7 @@ pub enum ConfigFile {
     Pacman,
     Aur,
     Flatpak,
+    LockFile,
 }
 
 impl ConfigFile {
@@ -32,6 +33,7 @@ impl ConfigFile {
             Self::Pacman => "pacman",
             Self::Aur => "aur",
             Self::Flatpak => "flatpak",
+            Self::LockFile => "declarch",
         }
     }
 }
@@ -65,11 +67,36 @@ fn toml_array_to_vec(arr: &toml_edit::Array) -> Vec<String> {
         .collect() // Collects into Vec<String>
 }
 
+fn generate_lockfile() {
+    let lock_path = get_config_file_path(&ConfigFile::LockFile);
+    match ensure_file_exists(&lock_path) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+    let mut files: Vec<String> = Vec::new();
+    let path = get_config_file_path(&ConfigFile::Pacman);
+    files.push(fs::read_to_string(&path).expect(format!("{} not found", path).as_str()));
+    let path = get_config_file_path(&ConfigFile::Aur);
+    files.push(fs::read_to_string(&path).expect(format!("{} not found", path).as_str()));
+    let path = get_config_file_path(&ConfigFile::Flatpak);
+    files.push(fs::read_to_string(&path).expect(format!("{} not found", path).as_str()));
+
+    let files_string: String = files.join("\n");
+    match fs::write(&lock_path, files_string) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{e}"),
+    }
+}
+
 pub fn update() {
     todo!();
 }
 
+// TODO:
+// Generate lockfile for app to make sure it knows what to install or uninstall during rebuild.
 pub fn rebuild() {
+    generate_lockfile();
+
     let config_file_type = ConfigFile::Pacman;
     let path = get_config_file_path(&config_file_type);
     match ensure_file_exists(&path) {
@@ -126,7 +153,10 @@ pub fn mask_systemd_service(owner: &str, service: &str) {
 
 pub fn get_config_file_path(config_file: &ConfigFile) -> String {
     let config_file_str = config_file.as_str();
-    format!("test-data/{}.toml", config_file_str)
+    match config_file {
+        ConfigFile::LockFile => format!("test-data/{}.lock", config_file_str),
+        _ => format!("test-data/{}.toml", config_file_str),
+    }
 }
 
 // fn credit: gemini 3 (with manual edits, the code was broken at first :P)
@@ -166,6 +196,7 @@ pub fn add_packages(
         Pacman => insert::pacman(&mut doc, new_packages),
         Aur => insert::aur(&mut doc, new_packages),
         Flatpak => insert::flatpak_pkg(&mut doc, new_packages, remote.unwrap()),
+        _ => todo!(),
     }
 
     // Write changes to disk

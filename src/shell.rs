@@ -14,6 +14,7 @@ pub fn install_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
             aur_helper(&config_file_type)
         ),
         ConfigFile::Flatpak => todo!(),
+        _ => todo!(),
     };
 
     let mut child = Command::new("sh")
@@ -30,6 +31,7 @@ pub fn rm_packages(packages: &Vec<String>, config_file_type: &ConfigFile) {
         ConfigFile::Pacman => format!("sudo pacman -Rns {packages_string}"),
         ConfigFile::Aur => format!("{} -Rns {packages_string}", aur_helper(&config_file_type)),
         ConfigFile::Flatpak => todo!(),
+        _ => todo!(),
     };
 
     let mut child = Command::new("sh")

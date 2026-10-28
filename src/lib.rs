@@ -1,4 +1,5 @@
 // use serde::Deserialize;
+use similar::{ChangeTag, TextDiff};
 use std::fs;
 use std::path::Path;
 use toml_edit::{DocumentMut, Value};
@@ -38,10 +39,21 @@ impl ConfigFile {
     }
 }
 
+pub fn get_config_file_path(config_file: &ConfigFile) -> String {
+    let config_file_str = config_file.as_str();
+    let file_path = match config_file {
+        ConfigFile::LockFile => format!("test-data/{}.lock", config_file_str),
+        _ => format!("test-data/{}.toml", config_file_str),
+    };
+    if let Err(e) = ensure_file_exists(&file_path) {
+        eprintln!("{e}");
+    }
+    file_path
+}
+
 pub fn get_doc(path: &str) -> DocumentMut {
-    match ensure_file_exists(path) {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
+    if let Err(e) = ensure_file_exists(path) {
+        eprintln!("{e}");
     }
 
     let toml_data = fs::read_to_string(path).expect(format!("{} not found", path).as_str());
@@ -67,12 +79,7 @@ fn toml_array_to_vec(arr: &toml_edit::Array) -> Vec<String> {
         .collect() // Collects into Vec<String>
 }
 
-fn generate_lockfile() {
-    let lock_path = get_config_file_path(&ConfigFile::LockFile);
-    match ensure_file_exists(&lock_path) {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
-    }
+fn get_cfg_files_string() -> String {
     let mut files: Vec<String> = Vec::new();
     let path = get_config_file_path(&ConfigFile::Pacman);
     files.push(fs::read_to_string(&path).expect(format!("{} not found", path).as_str()));
@@ -80,11 +87,43 @@ fn generate_lockfile() {
     files.push(fs::read_to_string(&path).expect(format!("{} not found", path).as_str()));
     let path = get_config_file_path(&ConfigFile::Flatpak);
     files.push(fs::read_to_string(&path).expect(format!("{} not found", path).as_str()));
+    files.join("\n")
+}
 
-    let files_string: String = files.join("\n");
-    match fs::write(&lock_path, files_string) {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
+fn get_cfg_diff(current: &str, lockfile: &str) {
+    let diff = TextDiff::from_lines(lockfile, current);
+
+    println!("Lines in lockfile but not in current");
+    for change in diff.iter_all_changes() {
+        if change.tag() == ChangeTag::Delete {
+            print!("{}", change);
+        }
+    }
+    println!("Lines in current but not in lockfile");
+    for change in diff.iter_all_changes() {
+        if change.tag() == ChangeTag::Insert {
+            print!("{}", change);
+        }
+    }
+}
+
+fn get_lockfile() -> String {
+    let lock_path = get_config_file_path(&ConfigFile::LockFile);
+    if let Err(e) = ensure_file_exists(&lock_path) {
+        eprintln!("{e}");
+    }
+    fs::read_to_string(&lock_path).expect("Failed to read lockfile")
+}
+
+fn generate_lockfile() {
+    let lock_path = get_config_file_path(&ConfigFile::LockFile);
+    if let Err(e) = ensure_file_exists(&lock_path) {
+        eprintln!("{e}");
+    }
+
+    let files_string: String = get_cfg_files_string();
+    if let Err(e) = fs::write(&lock_path, files_string) {
+        eprintln!("{e}");
     }
 }
 
@@ -95,27 +134,19 @@ pub fn update() {
 // TODO:
 // Generate lockfile for app to make sure it knows what to install or uninstall during rebuild.
 pub fn rebuild() {
-    generate_lockfile();
+    let current_cfg = get_cfg_files_string();
 
-    let config_file_type = ConfigFile::Pacman;
-    let path = get_config_file_path(&config_file_type);
-    match ensure_file_exists(&path) {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
+    // check if lockfile exists yet
+    let lock_path = get_config_file_path(&ConfigFile::LockFile);
+    let mut lock_exists: bool = false;
+    match fs::exists(lock_path) {
+        Ok(true) => lock_exists = true,
+        Ok(false) => lock_exists = false,
+        Err(e) => eprintln!("Failed to check file: {e}"),
     }
-    let doc = get_doc(&path);
-    if let Some(arr) = doc["pacman"]["packages"].as_array() {
-        shell::install_packages(&toml_array_to_vec(arr), &config_file_type);
-    }
-    let path = get_config_file_path(&ConfigFile::Aur);
-    match ensure_file_exists(path) {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
-    }
-    let path = get_config_file_path(&ConfigFile::Flatpak);
-    match ensure_file_exists(path) {
-        Ok(_) => (),
-        Err(e) => eprintln!("{e}"),
+
+    if lock_exists {
+        get_cfg_diff(&current_cfg, &get_lockfile());
     }
 }
 
@@ -149,14 +180,6 @@ pub fn disable_systemd_service(owner: &str, service: &str) {
 
 pub fn mask_systemd_service(owner: &str, service: &str) {
     todo!();
-}
-
-pub fn get_config_file_path(config_file: &ConfigFile) -> String {
-    let config_file_str = config_file.as_str();
-    match config_file {
-        ConfigFile::LockFile => format!("test-data/{}.lock", config_file_str),
-        _ => format!("test-data/{}.toml", config_file_str),
-    }
 }
 
 // fn credit: gemini 3 (with manual edits, the code was broken at first :P)

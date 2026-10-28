@@ -2,7 +2,7 @@
 packages = [
     "niri",
     "yazi",
-    "micro",
+    "bottom",
 ]
 
 [pacman.groups.gnome]
@@ -38,6 +38,7 @@ remotes = [
 packages = [
     "app.drey.Haystack",
     "org.turbowarp.TurboWarp",
+    "haha.org.com",
 ]
 
 # Special overrides: permissions or different remotes
